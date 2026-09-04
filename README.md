@@ -108,6 +108,39 @@ in a Spreadsheet application:
 
 ![img](./img/2026-06-12-tsv-output-sample.png)
 
+### Price Fetcher
+
+Read a file containing commodity names (one per line) and fetch the latest prices.
+
+Valid ISO 4217 currency codes are fetched from the [Frankfurter API](https://www.frankfurter.app/)
+against the given `--base-currency`. All other commodities are treated as stock/ETF tickers and
+fetched from Yahoo Finance (priced in their native currency).
+
+Output is written to stdout as Ledger price directives. Use `-` as the filename to read from stdin.
+
+```sh
+# Create a commodities file
+$ cat commodities.txt
+USD
+EUR
+AAPL
+GOOGL
+
+# Fetch prices with JPY as the base currency
+$ go run main.go price-fetcher --base-currency JPY commodities.txt
+P 2025-09-04 USD JPY 145.23
+P 2025-09-04 EUR JPY 161.45
+P 2025-09-04 "AAPL" 222.14 "USD"
+P 2025-09-04 "GOOGL" 165.30 "USD"
+```
+
+> **Tip:** Use `hledger commodities` to extract all commodities from a Ledger file, then
+> pipe them directly into `price-fetcher` without creating an intermediate file:
+>
+> ```sh
+> $ hledger -f journal.dat commodities | go run main.go price-fetcher --base-currency JPY -
+> ```
+
 ## Testing
 
 When making changes to the script, confirm that the changes that are made in the TestData are
