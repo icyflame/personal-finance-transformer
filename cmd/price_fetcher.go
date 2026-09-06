@@ -25,7 +25,7 @@ and fetched from Yahoo Finance (priced in their native currency).
 
 Output is written to stdout as Ledger price directives:
 
-  P DATE <CURRENCY> <CURRENCY-BASE> <RATE>      (for currencies)
+  P DATE <CURRENCY> <BASE-CURRENCY> <RATE>      (for currencies)
   P DATE "<TICKER>" <PRICE> "<NATIVE-CURRENCY>"  (for stocks/ETFs)
 
 Use "-" as the filename to read from stdin.`,

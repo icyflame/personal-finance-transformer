@@ -32,22 +32,6 @@ func New() *Client {
 	}
 }
 
-// FetchRates calls GET /v2/rates?base=<base>&quotes=<comma-joined quotes>
-// and returns the decoded []Rate slice.
-func (c *Client) FetchRates(base string, quotes []string) ([]Rate, error) {
-	u, err := url.Parse(baseURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to parse base URL: %w", err)
-	}
-
-	q := u.Query()
-	q.Set("base", base)
-	q.Set("quotes", strings.Join(quotes, ","))
-	u.RawQuery = q.Encode()
-
-	return c.fetch(u.String())
-}
-
 // FetchRate calls GET /v2/rates?base=<base>&quotes=<quote> and returns the
 // single Rate record for that currency pair.
 func (c *Client) FetchRate(base, quote string) (Rate, error) {
