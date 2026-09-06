@@ -13,6 +13,7 @@ func init() {
 	rootCmd.AddCommand(gnucashToLedgerCmd)
 	rootCmd.AddCommand(prestiaToLedgerCmd)
 	rootCmd.AddCommand(diffLedgerCmd)
+	rootCmd.AddCommand(priceFetcherCmd)
 }
 
 func Execute() error {
