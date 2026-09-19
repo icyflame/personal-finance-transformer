@@ -132,6 +132,14 @@ P 2025-09-04 USD JPY 145.23
 P 2025-09-04 EUR JPY 161.45
 P 2025-09-04 "AAPL" 222.14 "USD"
 P 2025-09-04 "GOOGL" 165.30 "USD"
+
+# Fetch prices for a specific date instead of the latest price
+# (for non-trading days, the most recent prior trading day is used)
+$ go run main.go price-fetcher --base-currency JPY --date 2025-09-01 commodities.txt
+P 2025-09-01 USD JPY 147.17
+P 2025-09-01 EUR JPY 172.18
+P 2025-08-29 "AAPL" 232.14 "USD"
+P 2025-08-29 "GOOGL" 212.91 "USD"
 ```
 
 > **Tip:** Use `hledger commodities` to extract all commodities from a Ledger file, then
