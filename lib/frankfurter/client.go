@@ -33,8 +33,10 @@ func New() *Client {
 }
 
 // FetchRate calls GET /v2/rates?base=<base>&quotes=<quote> and returns the
-// single Rate record for that currency pair.
-func (c *Client) FetchRate(base, quote string) (Rate, error) {
+// single Rate record for that currency pair. If date is non-zero, the rate
+// for that date (or the closest prior business day) is returned instead of
+// the latest rate.
+func (c *Client) FetchRate(base, quote string, date time.Time) (Rate, error) {
 	u, err := url.Parse(baseURL)
 	if err != nil {
 		return Rate{}, fmt.Errorf("failed to parse base URL: %w", err)
@@ -43,6 +45,9 @@ func (c *Client) FetchRate(base, quote string) (Rate, error) {
 	q := u.Query()
 	q.Set("base", base)
 	q.Set("quotes", quote)
+	if !date.IsZero() {
+		q.Set("date", date.Format("2006-01-02"))
+	}
 	u.RawQuery = q.Encode()
 
 	rates, err := c.fetch(u.String())

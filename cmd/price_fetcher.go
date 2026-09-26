@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"time"
 
 	"github.com/icyflame/gnucash-xml-to-ledger-dat/lib/frankfurter"
 	"github.com/icyflame/gnucash-xml-to-ledger-dat/lib/yahoo"
@@ -13,6 +14,7 @@ import (
 )
 
 var priceFetcherCurrencyBase string
+var priceFetcherDate string
 
 var priceFetcherCmd = &cobra.Command{
 	Use:   "price-fetcher <commodities-file>",
@@ -28,7 +30,11 @@ Output is written to stdout as Ledger price directives:
   P DATE <CURRENCY> <BASE-CURRENCY> <RATE>      (for currencies)
   P DATE "<TICKER>" <PRICE> "<NATIVE-CURRENCY>"  (for stocks/ETFs)
 
-Use "-" as the filename to read from stdin.`,
+Use "-" as the filename to read from stdin.
+
+With --date YYYY-MM-DD, fetch the price on that date instead of the latest
+price. If the market was closed on that date, the most recent prior trading
+day's price is used.`,
 	Args: cobra.ExactArgs(1),
 	RunE: runPriceFetcher,
 }
@@ -36,9 +42,18 @@ Use "-" as the filename to read from stdin.`,
 func init() {
 	priceFetcherCmd.Flags().StringVar(&priceFetcherCurrencyBase, "base-currency", "", "Base currency for exchange rates (required, e.g. JPY)")
 	priceFetcherCmd.MarkFlagRequired("base-currency")
+	priceFetcherCmd.Flags().StringVar(&priceFetcherDate, "date", "", "Fetch prices for this date (YYYY-MM-DD) instead of the latest")
 }
 
 func runPriceFetcher(cmd *cobra.Command, args []string) error {
+	var date time.Time
+	if priceFetcherDate != "" {
+		var err error
+		date, err = time.Parse("2006-01-02", priceFetcherDate)
+		if err != nil {
+			return fmt.Errorf("invalid --date %q: expected YYYY-MM-DD", priceFetcherDate)
+		}
+	}
 	// Open input.
 	var file *os.File
 	if args[0] == "-" {
@@ -80,7 +95,7 @@ func runPriceFetcher(cmd *cobra.Command, args []string) error {
 	// gives "1 <currency> = X <base-currency>", mapping directly to the directive.
 	frankfurterClient := frankfurter.New()
 	for _, cur := range currencies {
-		rate, err := frankfurterClient.FetchRate(cur, priceFetcherCurrencyBase)
+		rate, err := frankfurterClient.FetchRate(cur, priceFetcherCurrencyBase, date)
 		if err != nil {
 			return fmt.Errorf("failed to fetch exchange rate for %s: %w", cur, err)
 		}
@@ -91,7 +106,7 @@ func runPriceFetcher(cmd *cobra.Command, args []string) error {
 	// Price is in the symbol's native currency; --base-currency is not used here.
 	yahooClient := yahoo.New()
 	for _, symbol := range stocks {
-		quote, err := yahooClient.FetchQuote(symbol)
+		quote, err := yahooClient.FetchQuote(symbol, date)
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "warning: failed to fetch quote for %q: %v, skipping\n", symbol, err)
 			continue
