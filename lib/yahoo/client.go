@@ -136,16 +136,20 @@ func quoteOnDate(result chartResult, date time.Time) (Quote, error) {
 	)
 	if len(result.Indicators.Quote) > 0 {
 		closes := result.Indicators.Quote[0].Close
+
+		// nextDay is the first instant of time after the given date
+		nextDay := date.AddDate(0, 0, 1)
+
 		for i, ts := range result.Timestamp {
 			if i >= len(closes) || closes[i] == nil {
 				continue
 			}
 			barTime := time.Unix(ts, 0)
 			barDate := barTime.In(loc)
-			if barDate.Year() > date.Year() ||
-				(barDate.Year() == date.Year() && barDate.YearDay() > date.YearDay()) {
+			if barDate.After(nextDay) {
 				continue
 			}
+
 			if !found || barTime.After(bestTime) {
 				bestTime, bestClose, found = barTime, *closes[i], true
 			}
