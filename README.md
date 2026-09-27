@@ -92,7 +92,8 @@ monthly diff in a Spreadsheet tool:
 
 ``` sh
 $ go run main.go diff-ledger register \
-    <(dock_hledger -f ./TestData/TestBook-Prestia/prestia-statement-inr.dat register --begin 2025-10-01 --end 2025-10-31 'Liabilities' -O csv | head -n10) \                                                                                                                  <(dock_hledger -f ./TestData/TestBook-Ledger/TestBook.ledger.dat register --begin 2025-10-01 --end 2025-10-31 'Liabilities' -O csv | head -n10) | sed '1,/=== Output as TSV/ d'
+    <(dock_hledger -f ./TestData/TestBook-Prestia/prestia-statement-inr.dat register --begin 2025-10-01 --end 2025-10-31 'Liabilities' -O csv | head -n10) \
+	<(dock_hledger -f ./TestData/TestBook-Ledger/TestBook.ledger.dat register --begin 2025-10-01 --end 2025-10-31 'Liabilities' -O csv | head -n10) | sed '1,/=== Output as TSV/ d'
 2025-10-26      INR -410        Liabilities:Credit Card 海外飲食店              2025-10-07      INR -250        Liabilities:Credit Card      Lunch
                                         2025-10-10      INR -1380       Liabilities:Credit Card Groceries
                                         2025-10-19      INR -2000       Liabilities:Credit Card Groceries
