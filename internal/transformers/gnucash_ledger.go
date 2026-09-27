@@ -3,10 +3,12 @@ package transformers
 import (
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"strings"
 
 	"github.com/icyflame/gnucash-xml-to-ledger-dat/lib/parsers/gnucash"
+	"golang.org/x/text/currency"
 )
 
 type GnuCashLedgerTransformer struct {
@@ -61,15 +63,26 @@ func (t *GnuCashLedgerTransformer) Write(writer io.Writer) error {
 				commodity = txn.Currency.ID
 			}
 
+			// If the account's commodity is not a real ISO currency, it is a stock symbol. In that
+			// case, split:quantity is the number of shares and split:value is the total cost of the
+			// split in the transaction's currency. Emit the total cost with the @@ notation so that
+			// Ledger can balance transactions in which one stock is traded for another.
+			//
+			// The total cost must be positive: the sign of the quantity determines whether the split
+			// is a buy or a sell. (GnuCash records sells with both quantity and value negative, but
+			// hledger rejects a negative total cost since both postings then have the same sign.)
+			//
+			// See 4.5.2 Buying and Selling Stock in the Ledger manual: https://ledger-cli.org/doc/ledger3.pdf
+			if _, err := currency.ParseISO(commodity); err != nil && quantity != 0 && value != 0 {
+				fmt.Fprintf(writer, "  %s  \"%s\"  %g @@ \"%s\" %g\n", accountName, commodity, quantity, txn.Currency.ID, math.Abs(value))
+				continue
+			}
+
 			// Commodity names can have any character (including white space) if they are enclosed in double quotes.
 			//
 			// See section 4.5.1 Naming Commodities in the Ledger manual: https://ledger-cli.org/doc/ledger3.pdf
 			commodity = fmt.Sprintf("\"%s\"", commodity)
 
-			// TODO: For Stock purchases and sales, this should also have the price at which stocks were
-			// purchased, which will make it possible to use Ledger to calculate capital gains (maybe)
-			//
-			// See 4.5.2 Buying and Selling Stock in the Ledger manual: https://ledger-cli.org/doc/ledger3.pdf
 			fmt.Fprintf(writer, "  %s  %s  %g\n", accountName, commodity, amount)
 
 			// TODO: Include the second line from the transaction as a comment in the output Ledger file
