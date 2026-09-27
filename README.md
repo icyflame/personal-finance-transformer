@@ -156,15 +156,17 @@ When making changes to the script, confirm that the changes that are made in the
 logical.
 
 ``` shell
-# Convert "./TestData/TestBook-GnuCash/TestBook.gnucash" into a Ledger file
-# using the converter script
+# Run the oneliner script
+$ ./scripts/test.sh
+
+# Run the individual commands:
+
+## Convert "./TestData/TestBook-GnuCash/TestBook.gnucash" into a Ledger file
+## using the converter script
 $ zcat TestData/TestBook-GnuCash/TestBook.gnucash | go run main.go gnucash-to-ledger - > /tmp/converted.dat
 
-# Confirm that actual and expected are identical
+## Confirm that actual and expected are identical
 $ diff ./TestData/TestBook-Ledger/TestBook.ledger.dat /tmp/converted.dat
-
-# Oneliner:
-$ diff TestData/TestBook-Ledger/TestBook.ledger.dat <(zcat TestData/TestBook-GnuCash/TestBook.gnucash | go run main.go gnucash-to-ledger -)
 
 ```
 
